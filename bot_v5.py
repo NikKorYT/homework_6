@@ -1,6 +1,7 @@
 from collections import UserDict
 import datetime
 import pickle
+from abc import ABC, abstractmethod
 
 
 def input_error(func):
@@ -22,7 +23,7 @@ def input_error(func):
 
 
 class Field:
-    def __init__(self, value):
+    def __init__(self, value: str):
         self.value = value
 
     # return the value of the field as a string
@@ -169,11 +170,39 @@ class AddressBook(UserDict):
         return upcoming_birthdays
 
 
+class BaseView(ABC):
+    @abstractmethod
+    def phone(self, book: AddressBook):
+        pass
+
+    @abstractmethod
+    def all(self, contacts):
+        pass
+
+
+class ConsoleView(BaseView):
+    @input_error
+    def phone(self, args, book: AddressBook) -> str:
+        name = args[0]
+        record = book.find(name)
+        if record is None:
+            return "Contact not found."
+        phone_numbers = [str(phone) for phone in record.phones]
+        return f"These are the phone numbers for {name}: {', '.join(phone_numbers)}"
+
+    @input_error
+    def all(self, book: AddressBook) -> None:
+        """Function to print all contacts in the address book"""
+        for record in book.data.values():
+            print(record)
+
+
 def main():
     """
     The function is controlling the cycle of command processing.
     """
     print("Welcome to the assistant bot!")
+    view = ConsoleView()
     book = load_data()
     while True:
         # Getting the input from the user
@@ -196,10 +225,10 @@ def main():
             print(change_contact(args, book))
 
         elif command == "phone":
-            print(phone(args, book))
+            print(view.phone(args, book))
 
         elif command == "all":
-            all(book)
+            view.all(book)
 
         elif command == "add-birthday":
             print(add_birthday(args, book))
@@ -274,13 +303,6 @@ def phone(args, book: AddressBook) -> str:
         return "Contact not found."
     phone_numbers = [str(phone) for phone in record.phones]
     return f"These are the phone numbers for {name}: {', '.join(phone_numbers)}"
-
-
-@input_error
-def all(book: AddressBook) -> None:
-    """Function to print all contacts in the address book"""
-    for record in book.data.values():
-        print(record)
 
 
 @input_error
