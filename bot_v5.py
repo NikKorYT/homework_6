@@ -58,7 +58,7 @@ class Birthday(Field):
 
 
 class Record:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         self.phones = []
         self.birthday = None
